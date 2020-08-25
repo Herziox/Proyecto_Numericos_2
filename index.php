@@ -69,8 +69,14 @@
 <?php
 //Main
 if(isset($_POST['btnA'])){
+
+    //Constantes
     $yMax=-100;
+    $tol=1e-2;
+
+    //Ingreso de puntos en el plano cartesiano
     if($_POST['intro']=="texto"){
+        //Ingreso a traves de campo
         $puntos=$_POST['puntos'];
         $valores = explode(";",$puntos);
         $n=count($valores);
@@ -82,6 +88,7 @@ if(isset($_POST['btnA'])){
                 $yMax=$y[$i];
         }
     }else{
+        //Ingreso a traves de archivo txt
         copy($_FILES['valores']['tmp_name'],$_FILES['valores']['name']);
         $puntos=$_FILES['valores']['name'];
         $leer = file($puntos);
@@ -115,61 +122,56 @@ if(isset($_POST['btnA'])){
     $funcion = '(1/(1+a*(x-x0)**2))+(c/(1+a*(x-x0-b))**2)';
     echo "Función: $funcion";
     echo "<br>";
+
+    //Reemplazo del x0
     $funcion = str_replace('x0','4000',$funcion);
     echo "Función: $funcion";
     echo "<br>";
+
+    //Armar la función S
     $funcion = armarFuncionS($x,$y,$funcion,$n,$yMax);
     echo "<h4> S(a,b,c): $funcion </h4>";
     echo "<br>";
    
+    //Incognitas
+    $incognitas = ['a','b','c'];
 
-    $tol=1e-2;
+   
     $resultado=true;
-    /*$gradiente;
-    while($resultado){
-        for ($i=0; $i <=$n ; $i++) { 
-            $funcionN=$gradiente[$i];
-            for ($j=0; $j <=$n ; $j++) { 
-                $strJacobiana=$jacobiana[$i][$j];
-                $matrixA[$i][$j]=derivada($x0[$j],$constantes[$j],$strJacobiana);
-                   
-                $funcionN=str_replace("$constantes[$j]","$x0[$j]",$funcionN);
-               
-                
+    //Gradiente de la función S(a,b,c)
+    $vectorF;
+
+    //Vector de valores de [a,b,c]
+    $vectorZ=[1,1,1];
+
+    //Gradiende del vector Z de valores de [a,b,c]
+    $gradienteZ;
+
+    //Jacobina 
+    $jacobiana;
+
+    //while($resultado){
+        for ($i=0; $i < $n ; $i++) { 
+            $funcionN=$funcion;
+            for ($j=0; $j <$n ; $j++) {
+                if($i!=$j)
+                    $funcionN=str_replace($incognitas[$j],1,$funcionN);          
             } 
             
-            eval("\$b[$i]=$funcionN;");
+            echo "<h4> Funcion $incognitas[$i]: $funcionN </h4>";
+            echo "<br>";
+
+            //Obtener los valores del vectorF
+            $vectorF[$i]=primeraDerivada($vectorZ[$i],$incognitas[$i],$funcionN);
+            echo "<h4> d$incognitas[$i]/ds=  $vectorF[$i] </h4>";
+            echo "<br>";
+            //eval("\$funcionF[$i]=$vectorF")
+            
            
         }
 
-        printMatrix($matrixA,$b);
-        
-
-        for ($i=0; $i <= $n; $i++) {
-            $resultado=false; 
-           if(abs($b[$i])>$tol){
-            $resultado=true;
-            break;   
-           }
-        }
-
-       
-        $h=elimacionGaussiana($matrixA,$b);
-       
-        echo " <br> Correccion de valores de X <br>";
-       // $x0=$h;
-        for ($i=0; $i <= $n; $i++) { 
-            $x0[$i]-=$h[$i];
-            echo " $x0[$i] ";
-        }
-        echo " <br>";
-        
-
-
-
-
-
-    }*/
+      
+ //   }
 
     //A. Llene la Tabla 1 a partir de los datos que obtenga en la Fig. 1:
 
@@ -190,18 +192,7 @@ if(isset($_POST['btnA'])){
                'appletOnLoad': function(api) { 
                 
                 ";
-                $n=$n-1;
-                $a=$x[0];
-                for ($i=0; $i < $n; $i++) { 
-                    $b=$x[$i+1];
-                    echo "api.evalCommand('($x[$i], $y[$i])');";
-                    echo "api.evalCommand('Function($funcionLineal[$i],$a,$b)');";
-                    $a=$x[$i+1];
-                }
-                echo "api.evalCommand('($x[$n], $y[$n])');";
-                $a=$x[0];
-                echo "api.evalCommand('Function($funcionCuadratica,$a,$x[$n])');";
-                echo "api.evalCommand('Function($funcionLagrangeana,$a,$x[$n])');";
+
                 
     echo "       
         }}, true);
@@ -252,13 +243,13 @@ function primeraDerivada($x,$val,$funcion){
 }
 
 function pendienteUno($x,$dx,$val,$funcion){
-    return (ejecutar($x+$dx,$val,$funcion)-ejecutar($x,$val,$funcion))/$dx;
+    return (ejecutar($x+$dx,$val,$funcion)-ejecutar($x-$dx,$val,$funcion))/(2*$dx);
 }
 
 //Segunda derivada
 
 
-function derivadaDos($x,$val,$funcion){
+function segundaDerivada($x,$val,$funcion){
     $dx = 0.1; 
     $tolerancia = 1e-7;
     $pendiente_L = pendienteDos($x,$dx,$val,$funcion);
@@ -272,7 +263,8 @@ function derivadaDos($x,$val,$funcion){
 }
 
 function pendienteDos($x,$dx,$val,$funcion){
-    return (ejecutar($x+$dx,$val,$funcion)-2*ejecutar($x,$val,$funcion)+ejecutar($x-$dx,$val,$funcion))/($dx**2);
+    return (ejecutar($x+2*$dx,$val,$funcion)-2*ejecutar($x,$val,$funcion)+ejecutar($x-2*$dx,$val,$funcion))/(4*$dx);
+    //return (ejecutar($x+$dx,$val,$funcion)-2*ejecutar($x,$val,$funcion)+ejecutar($x-$dx,$val,$funcion))/($dx**2);
 }
 
 
@@ -300,6 +292,21 @@ function elimacionGaussiana($r,$s){
         $t[$i]=round(($s[$i]-$suma)/$r[$i][$i],3);
     } 
     return $t;
+}
+
+//Funcion para ejecutar funciones
+function ejecutar($x,$val,$funcion){
+    $res=0;
+    $funcion=str_replace("$val","$x", $funcion);
+    //echo "<br> Funcion Evaluada$funcion <br>";   
+    try {
+       eval("\$res=$funcion;");
+    } catch (Throwable $t) {
+        $res = null;
+        echo "error en la evaluacion";
+    }
+
+    return $res;
 }
 
 

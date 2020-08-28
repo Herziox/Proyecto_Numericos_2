@@ -74,6 +74,16 @@ if(isset($_POST['btnA'])){
     $yMax=-100;
     $tol=1e-2;
 
+    //Variables 
+    $resultado=true;
+
+    //Incognitas
+    $incognitas = ['a','b','c'];
+ 
+    // a ancho de la campana
+    // b desplazamientod de la funcion
+    // c altura de la funcion
+
     //Ingreso de puntos en el plano cartesiano
     if($_POST['intro']=="texto"){
         //Ingreso a traves de campo
@@ -119,7 +129,10 @@ if(isset($_POST['btnA'])){
     printMatrix($values,null);
 
     //Funcion Principal
-    $funcion = '(1/(1+a*(x-x0)**2))+(c/(1+a*(x-x0-b))**2)';
+    $funcion = '(1/(1+a*(x-x0)**2))+(c/(1+a*(x-x0-b)**2))';
+
+   
+
     echo "Función: $funcion";
     echo "<br>";
 
@@ -128,16 +141,16 @@ if(isset($_POST['btnA'])){
     echo "Función: $funcion";
     echo "<br>";
 
+
     //Armar la función S
     $funcion = armarFuncionS($x,$y,$funcion,$n,$yMax);
     echo "<h4> S(a,b,c): $funcion </h4>";
     echo "<br>";
    
-    //Incognitas
-    $incognitas = ['a','b','c'];
+   
 
    
-    $resultado=true;
+    
     //Gradiente de la función S(a,b,c)
     $vectorF;
 
@@ -150,25 +163,44 @@ if(isset($_POST['btnA'])){
     //Jacobina 
     $jacobiana;
 
+    //Jacobiana Transpuesta
+    $jacobianaT;
+
     //while($resultado){
         for ($i=0; $i < $n ; $i++) { 
             $funcionN=$funcion;
+           
             for ($j=0; $j <$n ; $j++) {
-                if($i!=$j)
-                    $funcionN=str_replace($incognitas[$j],1,$funcionN);          
+                if($i!=$j){
+                    $funcionN = str_replace($incognitas[$j],1,$funcionN);
+                   
+                }
+                    
             } 
             
             echo "<h4> Funcion $incognitas[$i]: $funcionN </h4>";
             echo "<br>";
 
             //Obtener los valores del vectorF
-            $vectorF[$i]=primeraDerivada($vectorZ[$i],$incognitas[$i],$funcionN);
-            echo "<h4> d$incognitas[$i]/ds=  $vectorF[$i] </h4>";
-            echo "<br>";
-            //eval("\$funcionF[$i]=$vectorF")
-            
-           
+            echo "<h2> Funcion </h2>";
+            $vectorF[$i][0]=primeraDerivada($vectorZ[$i],$incognitas[$i],$funcionN);
+            $str=$vectorF[$i][0];
+            echo "<h4> d$incognitas[$i]/ds= $str </h4>";
+            echo "<br>";      
         }
+
+
+
+        $jacobiana=array(array(1,2,3),array(4,5,6),array(7,8,9));
+        //$jacobiana=array(array(1),array(4),array(7));
+        $jacobianaT=array(array(1,1,1),array(1,1,1),array(1,1,1));
+
+        $a=productoDeMatrices($jacobianaT,$jacobiana,$n);
+        printMatrix($jacobiana,null);
+        printMatrix($jacobianaT,null);
+        printMatrix($a,null);
+        //matrizTranspuesta($jacobiana);
+        
 
       
  //   }
@@ -187,10 +219,8 @@ if(isset($_POST['btnA'])){
            var ggbApp = new GGBApplet({
                'appName': 'graphing',
                'showZoomButtons':true,
-               'height': 640,
-              
-               'appletOnLoad': function(api) { 
-                
+               'height': 640,  
+               'appletOnLoad': function(api) {                
                 ";
 
                 
@@ -205,6 +235,33 @@ if(isset($_POST['btnA'])){
    
 
 }
+
+function productoDeMatrices($matA,$matB,$n){
+    $matF = array();
+    for ($i=0; $i < $n; $i++) { 
+        for ($j=0; $j < count($matB[0]); $j++) {
+            $sum=0;
+            for ($k=0; $k < $n; $k++) { 
+                $sum+=$matA[$i][$k]*$matB[$k][$j];
+            }
+            $matF[$i][$j]=$sum;
+        }
+    }
+    
+    return $matF;
+}
+
+// Funcion matriz transpuesta
+function matrizTranspuesta($matriz) {
+    $matrizTrans = array();
+    
+        foreach ($matriz as $row_key => $row) {
+            foreach ($row as $column_key => $element) {
+                $matrizTrans[$column_key][$row_key] = $element;
+            }
+        }
+    return $matrizTrans;    
+} 
 
 
 //Funcion que construira la funcion S(a,b,c)

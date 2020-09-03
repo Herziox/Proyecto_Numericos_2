@@ -71,7 +71,7 @@
 if(isset($_POST['btnA'])){
 
     //Constantes
-    $yMax=-100;
+    $yMax=1111.764706;
     $tol=1e-2;
 
     //Variables 
@@ -79,6 +79,8 @@ if(isset($_POST['btnA'])){
 
     //Incognitas
     $incognitas = ['a','b','c'];
+
+    $m=count($incognitas);
  
     // a ancho de la campana
     // b desplazamientod de la funcion
@@ -94,8 +96,7 @@ if(isset($_POST['btnA'])){
             $value=explode(",",$valores[$i]);
             $x[$i]=$value[0];
             $y[$i]=$value[1];
-            if($y[$i]>$yMax)
-                $yMax=$y[$i];
+            
         }
     }else{
         //Ingreso a traves de archivo txt
@@ -118,8 +119,7 @@ if(isset($_POST['btnA'])){
             }else{
                 $y[$i]=$value[1];
             }
-            if($y[$i]>$yMax)
-                $yMax=$y[$i];
+            
            
         }
     }
@@ -143,15 +143,15 @@ if(isset($_POST['btnA'])){
 
 
     //Armar la función S
-    $funcion = armarFuncionS($x,$y,$funcion,$n,$yMax);
-    echo "<h4> S(a,b,c): $funcion </h4>";
-    echo "<br>";
+    //$funcion = armarFuncionS($x,$y,$funcion,$n,$yMax);
+   // echo "<h4> S(a,b,c): $funcion </h4>";
+    //echo "<br>";
    
    
 
-   
+    $funcionN=$funcion;
     
-    //Gradiente de la función S(a,b,c)
+    // S(a,b,c)
     $vectorF;
 
     //Vector de valores de [a,b,c]
@@ -166,36 +166,53 @@ if(isset($_POST['btnA'])){
     //Jacobiana Transpuesta
     $jacobianaT;
 
-    //while($resultado){
-        for ($i=0; $i < $n ; $i++) { 
-            $funcionN=$funcion;
-           
-            for ($j=0; $j <$n ; $j++) {
-                if($i!=$j){
-                    $funcionN = str_replace($incognitas[$j],1,$funcionN);
-                   
-                }
-                    
-            } 
-            
-            echo "<h4> Funcion $incognitas[$i]: $funcionN </h4>";
-            echo "<br>";
+    for ($i=0; $i < $m; $i++) { 
+        $funcionN = str_replace($incognitas[$i],$vectorZ[$i],$funcionN);
+    }
 
-            //Obtener los valores del vectorF
-            echo "<h2> Funcion </h2>";
-            $vectorF[$i][0]=primeraDerivada($vectorZ[$i],$incognitas[$i],$funcionN);
-            $str=$vectorF[$i][0];
-            echo "<h4> d$incognitas[$i]/ds= $str </h4>";
-            echo "<br>";      
+    //while($resultado){
+        //Armar el Vector F
+        for ($i=0; $i < $n ; $i++) {
+            $strFuncion = str_replace('x',$x[$i],$funcionN);
+            $strFuncion = $strFuncion."-$y[$i]/$yMax";
+           // echo "$strFuncion <br>";
+            $vectorF[$i][0]= eval("return $strFuncion;");
+           // $strFuncion = $vectorF[$i][0];
+           // echo "$strFuncion <br>";
         }
+
+        for ($i=0; $i < $n; $i++) { 
+            for ($j=0; $j < $m; $j++) { 
+                $funcionN=$funcion;
+                $funcionN = str_replace('x',$x[$i],$funcionN);
+                for ($k=0; $k < $m; $k++) { 
+                    if($j!=$k){
+                        $funcionN = str_replace($incognitas[$k],'1',$funcionN);
+                    }
+                }
+                $jacobiana[$i][$j]=primeraDerivada($vectorZ[$j],$incognitas[$j],$funcionN);
+                $jacobianaT[$j][$i]=$jacobiana[$i][$j];
+            } 
+        }
+
+       
+
+      
 
 
         //Calculo de la ecuacion ((J_n)^T)(J_n)(DeltaZ) = -((J_n)^T)(vectorF_n)
-        $jacobiana=array(array(1,2,3),array(4,5,6),array(7,8,9));
+       /* $jacobiana=array(array(1,2,3),array(4,5,6),array(7,8,9));
         $jacobianaT=matrizTranspuesta($jacobiana);
+        $vectorF=array(array(1),array(4),array(7));
+        $n=3;
+        */
+        printMatrix($jacobiana, null);
+        printMatrix($jacobianaT, null);
+        printMatrix($vectorF, null);
+        
 
+        
         $a=productoDeMatrices($jacobianaT,$jacobiana,$n);
-
         $jacobianaT_N=prpductoMatrizEscalar($jacobianaT,-1);
         $b=productoDeMatrices($jacobianaT_N,$vectorF,$n);
         $vectorB=obtenerVector($b,$n);
@@ -298,6 +315,11 @@ if(isset($_POST['btnA'])){
 
 }
 
+// Funcion que construye la jacobiana
+
+
+
+//Función que transforma una matriz nx1 en un vector de rango n (posiblemente modificable) 
 function obtenerVector($b,$n){
     $matB=array();
     for ($i=0; $i < $n; $i++) { 
@@ -308,13 +330,18 @@ function obtenerVector($b,$n){
     return $matB;
 }
 
-function productoDeMatrices($matA,$matB,$n){
+//Función de producto de matrices 
+function productoDeMatrices($matA,$matB){
     $matF = array();
+    $m=count($matB[0]);
+    $str=$matB[1][0];
+    echo "$n , $m  $str <br>";
     for ($i=0; $i < $n; $i++) { 
-        for ($j=0; $j < count($matB[0]); $j++) {
+        for ($j=0; $j < $m; $j++) {
             $sum=0;
-            for ($k=0; $k < $n; $k++) { 
+            for ($k=0; $k < count($matA[$i]); $k++) { 
                 $sum+=$matA[$i][$k]*$matB[$k][$j];
+                
             }
             $matF[$i][$j]=$sum;
         }
@@ -323,7 +350,7 @@ function productoDeMatrices($matA,$matB,$n){
     return $matF;
 }
 
-// Funcion matriz transpuesta
+// Función matriz transpuesta
 function matrizTranspuesta($matriz) {
     $matrizTrans = array();
     
@@ -335,8 +362,8 @@ function matrizTranspuesta($matriz) {
     return $matrizTrans;    
 } 
 
-// Convertir a negativo
-// Funcion matrizxescalar
+
+// Funcion matriz x escalar
 function prpductoMatrizEscalar($matriz,$escalar) {
     $matxesc = array();
     
@@ -347,30 +374,6 @@ function prpductoMatrizEscalar($matriz,$escalar) {
         }
     return $matxesc;    
 } 
-
-
-//Funcion que construira la funcion S(a,b,c)
-function armarFuncionS($x,$y,$f,$n,$yMax){
-    $funcionS='';
-    for ($i=0; $i < $n; $i++) { 
-
-        //Funcion [f(x_i)-(y_i/yMax)]**2
-        $fx='('.$f.'-('.$y[$i].'/'.$yMax.'))**2';
-
-        //Función reemplazo de x
-        $fx=str_replace("x",$x[$i],$fx);
-
-        //Contatenación de la función
-        if($i==$n-1)
-            $funcionS=$funcionS.$fx;
-        else
-            $funcionS=$funcionS.$fx.'+';
-        
-    }
-    return $funcionS;
-}
-
-//Primera Derivada
 function primeraDerivada($x,$val,$funcion){
     $dx = 0.1; 
     $tolerancia = 1e-7;
@@ -387,28 +390,6 @@ function primeraDerivada($x,$val,$funcion){
 function pendienteUno($x,$dx,$val,$funcion){
     return (ejecutar($x+$dx,$val,$funcion)-ejecutar($x-$dx,$val,$funcion))/(2*$dx);
 }
-
-//Segunda derivada
-
-
-function segundaDerivada($x,$val,$funcion){
-    $dx = 0.1; 
-    $tolerancia = 1e-7;
-    $pendiente_L = pendienteDos($x,$dx,$val,$funcion);
-    do {
-        $pendiente_L_1 = $pendiente_L;
-        $dx/=2;
-        $pendiente_L = pendienteDos($x,$dx,$val,$funcion);
-        
-    } while (abs($pendiente_L-$pendiente_L_1)>$tolerancia);
-    return $pendiente_L;
-}
-
-function pendienteDos($x,$dx,$val,$funcion){
-    return (ejecutar($x+2*$dx,$val,$funcion)-2*ejecutar($x,$val,$funcion)+ejecutar($x-2*$dx,$val,$funcion))/(4*$dx);
-    //return (ejecutar($x+$dx,$val,$funcion)-2*ejecutar($x,$val,$funcion)+ejecutar($x-$dx,$val,$funcion))/($dx**2);
-}
-
 
 //Eliminación Gaussiana
 function eliminacionGaussiana($r,$s){
@@ -451,21 +432,6 @@ function ejecutar($x,$val,$funcion){
     return $res;
 }
 
-
-//Mostrar valores
-function showResult($vector){
-    echo "<div class='results'>";
-        echo "<div class='flexbox'>";
-            echo "<div class='box'>";
-               
-                echo "<table class='table table-bordered tabla'>";
-                    echo "<tr>".printVector($vector,null)."</tr>";
-                echo "</table>";
-            echo "</div>";
-        echo "</div>";
-    echo "</div>";
-}
-
 //Impresion de vectores
 function printVector($vec,$b){
     foreach($vec as $value){
@@ -490,8 +456,68 @@ function printMatrix($a,$b) {
     echo "</table>";
 }
 
+/*
+//Funcion que construira la funcion S(a,b,c)
+function armarFuncionS($x,$y,$f,$n,$yMax){
+    $funcionS='';
+    for ($i=0; $i < $n; $i++) { 
+
+        //Funcion [f(x_i)-(y_i/yMax)]**2
+        $fx='('.$f.'-('.$y[$i].'/'.$yMax.'))**2';
+
+        //Función reemplazo de x
+        $fx=str_replace("x",$x[$i],$fx);
+
+        //Contatenación de la función
+        if($i==$n-1)
+            $funcionS=$funcionS.$fx;
+        else
+            $funcionS=$funcionS.$fx.'+';
+        
+    }
+    return $funcionS;
+}
+
+//Primera Derivada
 
 
+//Segunda derivada
+function segundaDerivada($x,$val,$funcion){
+    $dx = 0.1; 
+    $tolerancia = 1e-7;
+    $pendiente_L = pendienteDos($x,$dx,$val,$funcion);
+    do {
+        $pendiente_L_1 = $pendiente_L;
+        $dx/=2;
+        $pendiente_L = pendienteDos($x,$dx,$val,$funcion);
+        
+    } while (abs($pendiente_L-$pendiente_L_1)>$tolerancia);
+    return $pendiente_L;
+}
+
+function pendienteDos($x,$dx,$val,$funcion){
+    return (ejecutar($x+2*$dx,$val,$funcion)-2*ejecutar($x,$val,$funcion)+ejecutar($x-2*$dx,$val,$funcion))/(4*$dx);
+    //return (ejecutar($x+$dx,$val,$funcion)-2*ejecutar($x,$val,$funcion)+ejecutar($x-$dx,$val,$funcion))/($dx**2);
+}
+
+
+
+
+
+//Mostrar valores
+function showResult($vector){
+    echo "<div class='results'>";
+        echo "<div class='flexbox'>";
+            echo "<div class='box'>";
+               
+                echo "<table class='table table-bordered tabla'>";
+                    echo "<tr>".printVector($vector,null)."</tr>";
+                echo "</table>";
+            echo "</div>";
+        echo "</div>";
+    echo "</div>";
+}
+*/
 
 
 

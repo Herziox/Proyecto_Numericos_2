@@ -159,38 +159,51 @@ if(isset($_POST['btnA'])){
 
     $cont=0;
 
-    while($resultado && $cont<30){
+   // while($resultado && $cont<30){
         //Funcion
-        $funcionN=$funcion;
+ /*       $funcionJ=$funcion;
 
         for ($i=0; $i < $m; $i++) { 
-            $funcionN = str_replace($incognitas[$i],'('.$vectorZ[$i].')',$funcionN);
+            $funcionJ = str_replace($incognitas[$i],'('.$vectorZ[$i].')',$funcionJ);
         }
         
         for ($i=0; $i < $n ; $i++) {
             //Armar el Funcion F
-            $strFuncion = str_replace('x',$x[$i],$funcionN);
+            $strFuncion = str_replace('x',$x[$i],$funcionJ);
             $strFuncion = $strFuncion."-($y[$i]/$yMax)";
             
             //Armar el Vector F
             $vectorF[$i][0]= eval("return $strFuncion;");
         }
-        echo "Jacobiana <br>";
-        //Armar la Jacobiana y Jacobiana Traspuesta
+*/
+        //Armar Vecor F,  Jacobiana y Jacobiana Traspuesta
         for ($i=0; $i < $n; $i++) { 
             for ($j=0; $j < $m; $j++) { 
-                $funcionN=$funcion;
-               
-                $funcionN = str_replace('x',$x[$i],$funcionN);
+
+                //Funcion para obtener la Jacobiana
+                $funcionJ=$funcion;
+                $funcionJ = str_replace('x',$x[$i],$funcionJ);
+                $funcionJ = $funcionJ."-($y[$i]/$yMax)";
+
+                //Funcion para obtener el VectorF
+                $funcionF = $funcionJ;
+
                 for ($k=0; $k < $m; $k++) { 
-                    if($j!=$k){
-                        $funcionN = str_replace($incognitas[$k],'1',$funcionN);
+                    $valor='('.$vectorZ[$k].')';
+                    if($j!=$k){         
+                        $funcionJ = str_replace($incognitas[$k], $valor,$funcionJ);
                     }
+                    //Reemplazo de incognitas en la funcionF para obtener el vectorF
+                    $funcionF = str_replace($incognitas[$k], $valor,$funcionF);
                 }
-                //Jacobiana x
-               // echo " $funcionN, $vectorZ[$i], $incognitas[$j] <br>";
-                $valor='('.$vectorZ[$j].')';
-                $jacobiana[$i][$j]=primeraDerivada($vectorZ[$j],$incognitas[$j],$funcionN);
+
+                //Armar el Vector F
+                 $vectorF[$i][0]= eval("return $funcionF;");
+
+                //Jacobiana 
+                // echo " $funcionJ, $vectorZ[$i], $incognitas[$j] <br>";
+                $jacobiana[$i][$j]=primeraDerivada($vectorZ[$j],$incognitas[$j],$funcionJ);
+
                 //Jacobiana Traspuesta
                 $jacobianaT[$j][$i]=$jacobiana[$i][$j];
             } 
@@ -222,7 +235,7 @@ if(isset($_POST['btnA'])){
 
       
         //Impresion de resultados
-/*
+
            echo "<div class='flexbox'>";
                 echo "<div class='box'>";
                     echo "</br> <h2>Jacobiana Transpuesta</h2></br>";
@@ -247,7 +260,7 @@ if(isset($_POST['btnA'])){
                 echo "</div>";
         echo "</div>";
 
-*/
+
         
         
         
@@ -303,7 +316,7 @@ if(isset($_POST['btnA'])){
         
         
 
-   }
+   //}
 
 
 

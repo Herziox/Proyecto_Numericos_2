@@ -147,7 +147,7 @@ if(isset($_POST['btnA'])){
     $vectorF;
 
     //Vector inicial de los valores [a,b,c]
-    $vectorZ=[1,1,1];
+    $vectorZ=[1e-6,850,0.7];
 
     //Jacobina 
     $jacobiana;
@@ -188,9 +188,9 @@ if(isset($_POST['btnA'])){
                     }
                 }
                 //Jacobiana x
-                echo " $funcionN, $vectorZ[$i], $incognitas[$j] <br>";
-                //$valor='('.$vectorZ[$i].')';
-                $jacobiana[$i][$j]=primeraDerivada($vectorZ[$i],$incognitas[$j],$funcionN);
+               // echo " $funcionN, $vectorZ[$i], $incognitas[$j] <br>";
+                $valor='('.$vectorZ[$j].')';
+                $jacobiana[$i][$j]=primeraDerivada($vectorZ[$j],$incognitas[$j],$funcionN);
                 //Jacobiana Traspuesta
                 $jacobianaT[$j][$i]=$jacobiana[$i][$j];
             } 
@@ -207,15 +207,20 @@ if(isset($_POST['btnA'])){
         
        //Calculo de la ecuacion ((J_n)^T)(J_n)(DeltaZ) = -((J_n)^T)(vectorF_n)
        // echo "<h2> MATRIZ A </h2> <br>";
+
+
+       
         $a=productoDeMatrices($jacobianaT,$jacobiana);
         $jacobianaT_N=prpductoMatrizEscalar($jacobianaT,-1);
        // echo "<h2> MATRIZ B </h2><br>";
         $vectorAux=productoDeMatrices($jacobianaT_N,$vectorF);
+        $jtxf=$vectorAux;
         $b=obtenerVector($vectorAux);
         $vectorAux=$vectorZ;
        // echo "<h2> MATRIZ Elinamcion gaussiana </h2><br>";
         $vectorZ=eliminacionGaussiana($a,$b);
-        
+
+      
         //Impresion de resultados
 /*
            echo "<div class='flexbox'>";
@@ -241,7 +246,12 @@ if(isset($_POST['btnA'])){
                     printMatrix($vectorF,null);
                 echo "</div>";
         echo "</div>";
-   */ 
+
+*/
+        
+        
+        
+  
 
         echo "<div class='flexbox'>";
 
@@ -257,31 +267,41 @@ if(isset($_POST['btnA'])){
 
                 echo "<div class='box'>";
                     echo "</br><h2> Jacobiana Transpuesta</h2></br>";
-                    printMatrix($b,null);
+                    printMatrix($jtxf,null);
                 echo "</div>";
 
         echo "</div>";
         
+        echo "<div class='flexbox'>";
+
+            echo "<div class='box'>";
+                echo "</br> <h2>Vector Z m</h2></br>";
+                showResult($vectorAux);
+            echo "</div>";
+
+            echo "<div class='box'>";
+                echo "</br> <h2>Vector Z m+1</h2></br>";
+                showResult($vectorZ);
+            echo "</div>";
+         echo "</div>";
         
 
         for ($i=0; $i < count($vectorZ); $i++) { 
-            $vectorAux[$i]-=$vectorZ[$i];
+            $val = $vectorAux[$i]-$vectorZ[$i];
             $resultado=false;
-            if(abs($vectorAux[$i])>$tol){
+            if(abs($val)>$tol){
                 echo "<br>Iteración $cont<br>"; 
                 $cont++;
                 $resultado=true;
                 break;
             }
         }
-        echo "<div class='flexbox'>";
 
-            echo "<div class='box'>";
-                echo "</br> <h2>Vector Z (Valores de Ajuste)</h2></br>";
-                showResult($vectorZ);
-            echo "</div>";
-
-        echo "</div>";
+        for ($i=0; $i < count($vectorZ); $i++) { 
+            $vectorZ[$i]+=$vectorAux[$i];
+        }
+        
+        
 
    }
 
@@ -429,7 +449,7 @@ function soluciones($r,$s,$n){
 function ejecutar($x,$val,$funcion){
     $res=0;
     $funcion=str_replace("$val",'('.$x.')', $funcion);
-    echo "<br> Funcion Evaluada $funcion <br>";   
+    //echo "<br> Funcion Evaluada $funcion <br>";   
     try {
        eval("\$res=$funcion;");
     } catch (Throwable $t) {

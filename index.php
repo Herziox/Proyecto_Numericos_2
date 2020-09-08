@@ -70,21 +70,33 @@
 //Main
 if(isset($_POST['btnA'])){
 
-    //Constantes
-    $yMax=1087.7814;
-    $tol=1e-2;
-
-    //Variables 
-    $resultado=true;
-
     //Incognitas
     $incognitas = ['a','b','c'];
-
+        // a ancho de la campana
+        // b desplazamientod de la funcion
+        // c altura de la funcion
+    //CONSTANTES
+    $yMax=1087.7814;
+    $tol=1e-2;
     $m=count($incognitas);
- 
-    // a ancho de la campana
-    // b desplazamientod de la funcion
-    // c altura de la funcion
+
+    //VARIABLES
+    $resultado=true;
+
+    // S(a,b,c)
+    $vectorF;
+
+    //Vector inicial de los valores [a,b,c]
+    $vectorZ=[1e-6,850,0.7];
+
+    //Jacobina 
+    $jacobiana;
+
+    //Jacobiana Transpuesta
+    $jacobianaT;
+
+    //Contador de iteraciones
+    $cont=0;
 
     //Ingreso de puntos en el plano cartesiano
     if($_POST['intro']=="texto"){
@@ -130,52 +142,14 @@ if(isset($_POST['btnA'])){
 
     //Funcion Principal
     $funcion = '(1/(1+a*(x-x0)**2))+(c/(1+a*(x-x0-b)**2))';
-
-   
-
-    echo "Función: $funcion";
-    echo "<br>";
+    echo "Función: $funcion <br>";
 
     //Reemplazo del x0
     $funcion = str_replace('x0','4000',$funcion);
-    echo "Función: $funcion";
-    echo "<br>";
-   
+    echo "Función: $funcion <br>";
 
-    
-    // S(a,b,c)
-    $vectorF;
-
-    //Vector inicial de los valores [a,b,c]
-    $vectorZ=[1e-6,850,0.7];
-
-    //Jacobina 
-    $jacobiana;
-
-    //Jacobiana Transpuesta
-    $jacobianaT;
-
-    
-
-    $cont=0;
-
-   // while($resultado && $cont<30){
-        //Funcion
- /*       $funcionJ=$funcion;
-
-        for ($i=0; $i < $m; $i++) { 
-            $funcionJ = str_replace($incognitas[$i],'('.$vectorZ[$i].')',$funcionJ);
-        }
-        
-        for ($i=0; $i < $n ; $i++) {
-            //Armar el Funcion F
-            $strFuncion = str_replace('x',$x[$i],$funcionJ);
-            $strFuncion = $strFuncion."-($y[$i]/$yMax)";
-            
-            //Armar el Vector F
-            $vectorF[$i][0]= eval("return $strFuncion;");
-        }
-*/
+    while($resultado && $cont<30){
+      
         //Armar Vecor F,  Jacobiana y Jacobiana Traspuesta
         for ($i=0; $i < $n; $i++) { 
             for ($j=0; $j < $m; $j++) { 
@@ -208,32 +182,29 @@ if(isset($_POST['btnA'])){
                 $jacobianaT[$j][$i]=$jacobiana[$i][$j];
             } 
         }
-        //Valores de prueba
-        /*$jacobiana=array(array(1,2,3),array(4,5,6),array(7,8,9));
-        $jacobianaT=matrizTranspuesta($jacobiana);
-        $vectorF=array(array(1),array(4),array(7));
-        $n=3;
-        */
-       // printMatrix($jacobiana, null);
-       // printMatrix($jacobianaT, null);
-       // printMatrix($vectorF, null);
         
-       //Calculo de la ecuacion ((J_n)^T)(J_n)(DeltaZ) = -((J_n)^T)(vectorF_n)
-       // echo "<h2> MATRIZ A </h2> <br>";
-
-
-       
+        //Producto de Jacobiana traspuesta por la jacobiana
         $a=productoDeMatrices($jacobianaT,$jacobiana);
-        $jacobianaT_N=prpductoMatrizEscalar($jacobianaT,-1);
-       // echo "<h2> MATRIZ B </h2><br>";
+
+        // Multiplicacion de -1 por la matriz Jacobiana traspuesta
+        $jacobianaT_N=prpductoMatrizEscalar($jacobianaT,-1);   
+
+        //Multiplicacion de la Jacobiana Traspuesta Negativa por el vectorF
         $vectorAux=productoDeMatrices($jacobianaT_N,$vectorF);
+
+        //Variable auxiliar para la impresión
         $jtxf=$vectorAux;
+
+        //Normalización de matriz a vector
         $b=obtenerVector($vectorAux);
+
+         //Variable auxiliar para los anteriores valores del vectorZ
         $vectorAux=$vectorZ;
-       // echo "<h2> MATRIZ Elinamcion gaussiana </h2><br>";
+
+        //Aplicación de la elimancion gaussiana para los nuevos valores del vectorZ
         $vectorZ=eliminacionGaussiana($a,$b);
 
-      
+  /*   
         //Impresion de resultados
 
            echo "<div class='flexbox'>";
@@ -260,12 +231,7 @@ if(isset($_POST['btnA'])){
                 echo "</div>";
         echo "</div>";
 
-
-        
-        
-        
-  
-
+ 
         echo "<div class='flexbox'>";
 
                 echo "<div class='box'>";
@@ -284,45 +250,42 @@ if(isset($_POST['btnA'])){
                 echo "</div>";
 
         echo "</div>";
-        
-        echo "<div class='flexbox'>";
+ */       
+       
 
-            echo "<div class='box'>";
-                echo "</br> <h2>Vector Z m</h2></br>";
-                showResult($vectorAux);
-            echo "</div>";
-
-            echo "<div class='box'>";
-                echo "</br> <h2>Vector Z m+1</h2></br>";
-                showResult($vectorZ);
-            echo "</div>";
-         echo "</div>";
-        
-
-        for ($i=0; $i < count($vectorZ); $i++) { 
+        for ($i=0; $i < $m; $i++) { 
             $val = $vectorAux[$i]-$vectorZ[$i];
             $resultado=false;
             if(abs($val)>$tol){
-                echo "<br>Iteración $cont<br>"; 
                 $cont++;
                 $resultado=true;
                 break;
             }
         }
 
-        for ($i=0; $i < count($vectorZ); $i++) { 
+        for ($i=0; $i < $m; $i++) { 
             $vectorZ[$i]+=$vectorAux[$i];
         }
         
-        
+        echo "<div class='flexbox'>";
 
-   //}
+        echo "<div class='box'>";
+            echo "</br> <h2>Vector Z (iteración $cont)</h2></br>";
+            showResult($vectorZ);
+        echo "</div>";
+     echo "</div>";
+
+   }
+
+   if($cont>=30){
+    echo "<div class='error'><br> NO se encontro los valores de ajuste <br></div>";
+   }
 
 
 
     //A. Llene la Tabla 1 a partir de los datos que obtenga en la Fig. 1:
 
-    
+    //B. Llene la Tabla 2 a partir del calculo compuacional:
 
    // Graficadora de Geogebra
    echo "
@@ -350,17 +313,6 @@ if(isset($_POST['btnA'])){
    
 
 }
-// Función matriz transpuesta
-function matrizTranspuesta($matriz) {
-    $matrizTrans = array();
-    
-        foreach ($matriz as $row_key => $row) {
-            foreach ($row as $column_key => $element) {
-                $matrizTrans[$column_key][$row_key] = $element;
-            }
-        }
-    return $matrizTrans;    
-} 
 
 
 //Función que transforma una matriz nx1 en un vector de rango n (posiblemente modificable) 

@@ -71,7 +71,7 @@
 if(isset($_POST['btnA'])){
 
     //Constantes
-    $yMax=1111.764706;
+    $yMax=1087.7814;
     $tol=1e-2;
 
     //Variables 
@@ -171,23 +171,26 @@ if(isset($_POST['btnA'])){
             //Armar el Funcion F
             $strFuncion = str_replace('x',$x[$i],$funcionN);
             $strFuncion = $strFuncion."-($y[$i]/$yMax)";
-            echo "$strFuncion <br>";
+            
             //Armar el Vector F
             $vectorF[$i][0]= eval("return $strFuncion;");
         }
-
+        echo "Jacobiana <br>";
         //Armar la Jacobiana y Jacobiana Traspuesta
         for ($i=0; $i < $n; $i++) { 
             for ($j=0; $j < $m; $j++) { 
                 $funcionN=$funcion;
+               
                 $funcionN = str_replace('x',$x[$i],$funcionN);
                 for ($k=0; $k < $m; $k++) { 
                     if($j!=$k){
                         $funcionN = str_replace($incognitas[$k],'1',$funcionN);
                     }
                 }
-                //Jacobiana 
-                $jacobiana[$i][$j]=primeraDerivada($vectorZ[$j],$incognitas[$j],$funcionN);
+                //Jacobiana x
+                echo " $funcionN, $vectorZ[$i], $incognitas[$j] <br>";
+                //$valor='('.$vectorZ[$i].')';
+                $jacobiana[$i][$j]=primeraDerivada($vectorZ[$i],$incognitas[$j],$funcionN);
                 //Jacobiana Traspuesta
                 $jacobianaT[$j][$i]=$jacobiana[$i][$j];
             } 
@@ -215,6 +218,31 @@ if(isset($_POST['btnA'])){
         
         //Impresion de resultados
 /*
+           echo "<div class='flexbox'>";
+                echo "<div class='box'>";
+                    echo "</br> <h2>Jacobiana Transpuesta</h2></br>";
+                    printMatrix($jacobianaT,null);
+                echo "</div>";
+        
+                echo "<div class='box'>";
+                    echo "</br><h2> Jacobiana</h2> </br>";
+                    printMatrix($jacobiana,null);
+                echo "</div>";
+              
+                echo "<div class='box'>";
+                    echo "</br> <h1>=</h1> </br>"; 
+                echo "</div>";
+                echo "<div class='box'>";
+                    echo "</br><h2> Jacobiana Transpuesta</h2></br>";
+                    printMatrix($jacobianaT_N,null);
+                echo "</div>";
+                echo "<div class='box'>";
+                    echo "</br> <h2>Vector F</h2></br>";
+                    printMatrix($vectorF,null);
+                echo "</div>";
+        echo "</div>";
+   */ 
+
         echo "<div class='flexbox'>";
 
                 echo "<div class='box'>";
@@ -233,7 +261,7 @@ if(isset($_POST['btnA'])){
                 echo "</div>";
 
         echo "</div>";
-   */     
+        
         
 
         for ($i=0; $i < count($vectorZ); $i++) { 
@@ -246,17 +274,18 @@ if(isset($_POST['btnA'])){
                 break;
             }
         }
+        echo "<div class='flexbox'>";
+
+            echo "<div class='box'>";
+                echo "</br> <h2>Vector Z (Valores de Ajuste)</h2></br>";
+                showResult($vectorZ);
+            echo "</div>";
+
+        echo "</div>";
 
    }
 
-    echo "<div class='flexbox'>";
 
-        echo "<div class='box'>";
-            echo "</br> <h2>Vector Z (Valores de Ajuste)</h2></br>";
-            showResult($vectorZ);
-        echo "</div>";
-
-    echo "</div>";
 
     //A. Llene la Tabla 1 a partir de los datos que obtenga en la Fig. 1:
 
@@ -399,13 +428,14 @@ function soluciones($r,$s,$n){
 //Funcion para ejecutar funciones
 function ejecutar($x,$val,$funcion){
     $res=0;
-    $funcion=str_replace("$val","$x", $funcion);
-    //echo "<br> Funcion Evaluada$funcion <br>";   
+    $funcion=str_replace("$val",'('.$x.')', $funcion);
+    echo "<br> Funcion Evaluada $funcion <br>";   
     try {
        eval("\$res=$funcion;");
     } catch (Throwable $t) {
         $res = null;
-        echo "error en la evaluacion";
+        echo "<div class='error'><br> error en la evaluacion <br></div>";
+        echo "Funcion evaluada: $funcion";
     }
 
     return $res;

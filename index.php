@@ -39,7 +39,7 @@
         </nav>
 
     <div class="title">
-            <h1> Proyecto de Segundp Bimestre (Version 0.1)</h1>
+            <h1> Proyecto de Segundp Bimestre (Version alpha 2.0)</h1>
      </div>
     <section id ="ingresarDatos"class="datos-details">
        
@@ -158,15 +158,16 @@ if(isset($_POST['btnA'])){
             $yNormal[$i]=eval("return $y[$i]/$yMax;");  
 
             //Funcion para obtener la Jacobiana
-            $funcionJ=$funcion;
-            $funcionJ = str_replace('x',$x[$i],$funcionJ);
-            $funcionJ = $funcionJ.'-('.$yNormal[$i].')';
+            $funcionAux=$funcion;
+            $funcionAux = str_replace('x',$x[$i],$funcionAux);
+            $funcionAux = $funcionAux.'-('.$yNormal[$i].')';
 
             //Funcion para obtener el VectorF
-            $funcionF = $funcionJ;
-            echo "<br>$funcionJ iter $i<br>";
+            $funcionF = $funcionAux;
+            //echo "<br>$funcionAux iter $i<br>";
            
-            for ($j=0; $j < $m; $j++) {       
+            for ($j=0; $j < $m; $j++) {
+                $funcionJ = $funcionAux;      
                 for ($k=0; $k < $m; $k++) { 
                     $valor='('.$vectorZ[$k].')';
                     if($j!=$k){         
@@ -177,7 +178,7 @@ if(isset($_POST['btnA'])){
                 }
 
                 //Jacobiana 
-                 echo " $funcionJ, $vectorZ[$j], $incognitas[$j], iterJ= $j <br>";
+                // echo " $funcionJ, $vectorZ[$j], $incognitas[$j], iterJ= $j <br>";
                 $jacobiana[$i][$j]=primeraDerivada($vectorZ[$j],$incognitas[$j],$funcionJ);
 
                 //Jacobiana Traspuesta
@@ -210,7 +211,7 @@ if(isset($_POST['btnA'])){
         //Aplicación de la elimancion gaussiana para los nuevos valores del vectorZ
         $vectorZ=eliminacionGaussiana($a,$b);
 
-     
+ /*    
         //Impresion de resultados
 
            echo "<div class='flexbox'>";
@@ -256,7 +257,7 @@ if(isset($_POST['btnA'])){
                 echo "</div>";
 
         echo "</div>";
-        
+       */ 
     
 
         for ($i=0; $i < $m; $i++) { 
@@ -312,10 +313,12 @@ if(isset($_POST['btnA'])){
     $l=5;
     $tabla1[0]=array('n','canal','conteo','conteo normalizado');
     $tabla2[0]=array('n','canal','conteo normalizado','curva','diferencia');
+    $funcionAux=$funcion
     for ($i=0; $i < $m; $i++) { 
-        $funcion = str_replace($incognitas[$k],'('.$vectorZ[$i].')',$funcion);
+        $funcion = str_replace($incognitas[$i],'('.$vectorZ[$i].')',$funcion);
     }
-    for ($i=1; $i < $n; $i++) { 
+    //echo "$funcion <br>";
+    for ($i=0; $i < $n; $i++) { 
 
         //A. Llene la Tabla 1 a partir de los datos que obtenga en la Fig. 1
         $tabla1[$i+1]=array($i,$x[$i],$y[$i],$yNormal[$i]);
@@ -323,8 +326,9 @@ if(isset($_POST['btnA'])){
          //B. Llene la Tabla 2 a partir del calculo compuacional
         $yCurva = $funcion;
         $yCurva = str_replace('x','('.$x[$i].')',$yCurva);
+        //echo "$yCurva <br>";
         $yCurva = eval("return $yCurva;");
-        $diferencia = abs($y[$i]-$yCurva);
+        $diferencia = eval("return abs($y[$i]-$yCurva);");
         $tabla2[$i+1]=array($i,$x[$i],$yNormal[$i],$yCurva,$diferencia);
     }
     echo "<h2>Tabla 1</h2>";

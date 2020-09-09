@@ -149,18 +149,20 @@ if(isset($_POST['btnA'])){
     echo "Función: $funcion <br>";
 
     while($resultado && $cont<30){
+        
       
         //Armar Vecor F,  Jacobiana y Jacobiana Traspuesta
         for ($i=0; $i < $n; $i++) { 
+            
             for ($j=0; $j < $m; $j++) { 
 
                 //Funcion para obtener la Jacobiana
-                $funcionJ=$funcion;
-                $funcionJ = str_replace('x',$x[$i],$funcionJ);
-                $funcionJ = $funcionJ."-($y[$i]/$yMax)";
+             $funcionJ=$funcion;
+             $funcionJ = str_replace('x',$x[$i],$funcionJ);
+             $funcionJ = $funcionJ."-($y[$i]/$yMax)";
 
-                //Funcion para obtener el VectorF
-                $funcionF = $funcionJ;
+             //Funcion para obtener el VectorF
+             $funcionF = $funcionJ;
 
                 for ($k=0; $k < $m; $k++) { 
                     $valor='('.$vectorZ[$k].')';
@@ -171,8 +173,7 @@ if(isset($_POST['btnA'])){
                     $funcionF = str_replace($incognitas[$k], $valor,$funcionF);
                 }
 
-                //Armar el Vector F
-                 $vectorF[$i][0]= eval("return $funcionF;");
+                
 
                 //Jacobiana 
                 // echo " $funcionJ, $vectorZ[$i], $incognitas[$j] <br>";
@@ -181,6 +182,8 @@ if(isset($_POST['btnA'])){
                 //Jacobiana Traspuesta
                 $jacobianaT[$j][$i]=$jacobiana[$i][$j];
             } 
+            //Armar el Vector F
+            $vectorF[$i][0]= eval("return $funcionF;");
         }
         
         //Producto de Jacobiana traspuesta por la jacobiana

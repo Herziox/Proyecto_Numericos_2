@@ -314,7 +314,7 @@ if(isset($_POST['btnA'])){
     $l=5;
     $tabla1[0]=array('n','canal','conteo','conteo normalizado');
     $tabla2[0]=array('n','canal','conteo normalizado','curva','diferencia');
-    $funcionAux=$funcion
+    $funcionAux=$funcion;
     for ($i=0; $i < $m; $i++) { 
         $funcion = str_replace($incognitas[$i],'('.$vectorZ[$i].')',$funcion);
     }

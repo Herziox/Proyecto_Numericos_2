@@ -135,10 +135,9 @@ if(isset($_POST['btnA'])){
            
         }
     }
-    echo "<h2>Puntos ingresados</h2>";
+    
     $values[0]=$x;
     $values[1]=$y;
-    printMatrix($values,null);
 
     //Funcion Principal
     $funcion = '(1/(1+a*(x-x0)**2))+(c/(1+a*(x-x0-b)**2))';
@@ -148,20 +147,26 @@ if(isset($_POST['btnA'])){
     $funcion = str_replace('x0','4000',$funcion);
     echo "Función: $funcion <br>";
 
+    $yNormal=array();
+
+
     while($resultado && $cont<30){
       
         //Armar Vecor F,  Jacobiana y Jacobiana Traspuesta
         for ($i=0; $i < $n; $i++) { 
-            for ($j=0; $j < $m; $j++) { 
+            //Funcion Normalizada
+            $yNormal[$i]=eval("return $y[$i]/$yMax;");  
 
-                //Funcion para obtener la Jacobiana
-                $funcionJ=$funcion;
-                $funcionJ = str_replace('x',$x[$i],$funcionJ);
-                $funcionJ = $funcionJ."-($y[$i]/$yMax)";
+            //Funcion para obtener la Jacobiana
+            $funcionJ=$funcion;
+            $funcionJ = str_replace('x',$x[$i],$funcionJ);
+            $funcionJ = $funcionJ.'-('.$yNormal[$i].')';
 
-                //Funcion para obtener el VectorF
-                $funcionF = $funcionJ;
-
+            //Funcion para obtener el VectorF
+            $funcionF = $funcionJ;
+            echo "<br>$funcionJ iter $i<br>";
+           
+            for ($j=0; $j < $m; $j++) {       
                 for ($k=0; $k < $m; $k++) { 
                     $valor='('.$vectorZ[$k].')';
                     if($j!=$k){         
@@ -171,16 +176,17 @@ if(isset($_POST['btnA'])){
                     $funcionF = str_replace($incognitas[$k], $valor,$funcionF);
                 }
 
-                //Armar el Vector F
-                 $vectorF[$i][0]= eval("return $funcionF;");
-
                 //Jacobiana 
-                // echo " $funcionJ, $vectorZ[$i], $incognitas[$j] <br>";
+                 echo " $funcionJ, $vectorZ[$j], $incognitas[$j], iterJ= $j <br>";
                 $jacobiana[$i][$j]=primeraDerivada($vectorZ[$j],$incognitas[$j],$funcionJ);
 
                 //Jacobiana Traspuesta
                 $jacobianaT[$j][$i]=$jacobiana[$i][$j];
             } 
+            //echo "<br>$funcionF <br>";
+
+            //Armar el Vector F
+             $vectorF[$i][0]= eval("return $funcionF;");
         }
         
         //Producto de Jacobiana traspuesta por la jacobiana
@@ -204,7 +210,7 @@ if(isset($_POST['btnA'])){
         //Aplicación de la elimancion gaussiana para los nuevos valores del vectorZ
         $vectorZ=eliminacionGaussiana($a,$b);
 
-  /*   
+     
         //Impresion de resultados
 
            echo "<div class='flexbox'>";
@@ -250,8 +256,8 @@ if(isset($_POST['btnA'])){
                 echo "</div>";
 
         echo "</div>";
- */       
-       
+        
+    
 
         for ($i=0; $i < $m; $i++) { 
             $val = $vectorAux[$i]-$vectorZ[$i];
@@ -267,15 +273,32 @@ if(isset($_POST['btnA'])){
             $vectorZ[$i]+=$vectorAux[$i];
         }
         
+       /*
         echo "<div class='flexbox'>";
-
         echo "<div class='box'>";
             echo "</br> <h2>Vector Z (iteración $cont)</h2></br>";
+            showResult($vectorAux);
+        echo "</div>";
+
+        echo "<div class='box'>";
+            echo "</br> <h2>+</h2></br>";
+            showResult($vectorZ);
+        echo "</div>";
+
+        echo "<div class='box'>";
+            echo "</br> <h2> = Vector Z (iteración $cont)</h2></br>";
             showResult($vectorZ);
         echo "</div>";
      echo "</div>";
-
+        */
    }
+
+    echo "<div class='flexbox'>";
+        echo "<div class='box'>";
+            echo "</br> <h2> Vector Z (iteración $cont)</h2></br>";
+            showResult($vectorZ);
+        echo "</div>";
+    echo "</div>";
 
    if($cont>=30){
     echo "<div class='error'><br> NO se encontro los valores de ajuste <br></div>";
@@ -283,9 +306,34 @@ if(isset($_POST['btnA'])){
 
 
 
-    //A. Llene la Tabla 1 a partir de los datos que obtenga en la Fig. 1:
+    
+    $tabla1=array();
+    $tabla2=array();
+    $l=5;
+    $tabla1[0]=array('n','canal','conteo','conteo normalizado');
+    $tabla2[0]=array('n','canal','conteo normalizado','curva','diferencia');
+    for ($i=0; $i < $m; $i++) { 
+        $funcion = str_replace($incognitas[$k],'('.$vectorZ[$i].')',$funcion);
+    }
+    for ($i=1; $i < $n; $i++) { 
 
-    //B. Llene la Tabla 2 a partir del calculo compuacional:
+        //A. Llene la Tabla 1 a partir de los datos que obtenga en la Fig. 1
+        $tabla1[$i+1]=array($i,$x[$i],$y[$i],$yNormal[$i]);
+
+         //B. Llene la Tabla 2 a partir del calculo compuacional
+        $yCurva = $funcion;
+        $yCurva = str_replace('x','('.$x[$i].')',$yCurva);
+        $yCurva = eval("return $yCurva;");
+        $diferencia = abs($y[$i]-$yCurva);
+        $tabla2[$i+1]=array($i,$x[$i],$yNormal[$i],$yCurva,$diferencia);
+    }
+    echo "<h2>Tabla 1</h2>";
+    printMatrix($tabla1,null);
+    echo "<h2>Tabla 2</h2>";
+    printMatrix($tabla2,null);
+    
+
+   
 
    // Graficadora de Geogebra
    echo "

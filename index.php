@@ -39,7 +39,7 @@
         </nav>
 
     <div class="title">
-            <h1> Proyecto de Segundp Bimestre (Version alpha 2.0)</h1>
+            <h1> Proyecto de Segundp Bimestre (Version alpha 3.0)</h1>
      </div>
     <section id ="ingresarDatos"class="datos-details">
        
@@ -47,15 +47,27 @@
             <h3 class="centrar-texto texto-blancho">Ingreso de datos</h3>
             <form class="formulario" action="" method="post" enctype="multipart/form-data">
             
-            <div class="">
-                <label for="validationDefault02"><input type="radio" name="intro" value="texto" onchange="invisible()" checked> Ingresar puntos</label>
-                <input  type="text" class="form-control" id="validationDefault01" name="puntos" placeholder="2,-6;3,-1;4,6" value="<?php if (isset($_POST['puntos']))echo $_POST['puntos']; else echo "2,-6;3,-1;4,6"; ?>">
-            </div>
-            <label for="validationDefault02"><input type="radio" name="intro" value="archivo" onchange="visible()" > Cargar archivo</label>
+            <label for="validationDefault02"> Cargar Valores</label>
                 <br>
             <div class="input-group">          
                 <input type="file" class="custom-file-input" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" name="valores">
                 <label class="custom-file-label" for="inputGroupFile04"><?php if (isset($_POST['valores']))echo $_POST['valores']; else echo "Seleccionar Archivo"; ?></label>        
+            </div>
+            <label for="validationDefault02"> Estimativa incial</label>
+            <div class="flexbox">
+                
+                <div class="box">
+                    <label for="validationDefault02"> a </label>
+                    <input  type="text" class="form-control" id="validationDefault01" name="a" placeholder="1" value="<?php if (isset($_POST['a']))echo $_POST['a']; else echo "1e-6"; ?>">
+                </div>
+                <div class="box">
+                    <label for="validationDefault02"> b </label>
+                    <input  type="text" class="form-control" id="validationDefault01" name="b" placeholder="1" value="<?php if (isset($_POST['b']))echo $_POST['b']; else echo "850"; ?>">
+                </div>
+                <div class="box">
+                    <label for="validationDefault02"> c </label>
+                    <input  type="text" class="form-control" id="validationDefault01" name="c" placeholder="1" value="<?php if (isset($_POST['c']))echo $_POST['c']; else echo "0.7"; ?>">
+                </div>
             </div>
             <div class="flexbox">
             <input class="btn btn-primary"  class="centrar boton" type="submit" value="Calcular" id="btnA" name="btnA" />
@@ -69,6 +81,7 @@
 <?php
 //Main
 if(isset($_POST['btnA'])){
+   
 
     //Incognitas
     $incognitas = ['a','b','c'];
@@ -76,7 +89,7 @@ if(isset($_POST['btnA'])){
         // b desplazamientod de la funcion
         // c altura de la funcion
     //CONSTANTES
-    $yMax=1087.7814;
+    $yMax=1111.764706;
     $tol=1e-2;
     $m=count($incognitas);
 
@@ -87,7 +100,11 @@ if(isset($_POST['btnA'])){
     $vectorF;
 
     //Vector inicial de los valores [a,b,c]
-    $vectorZ=[1e-6,850,0.7];
+    //$vectorZ=[1e-6,850,0.7];
+    $vectorZ[0]=$_POST['a'];
+    $vectorZ[1]=$_POST['b'];
+    $vectorZ[2]=$_POST['c'];
+
 
     //Jacobina 
     $jacobiana;
@@ -98,46 +115,26 @@ if(isset($_POST['btnA'])){
     //Contador de iteraciones
     $cont=0;
 
-    //Ingreso de puntos en el plano cartesiano
-    if($_POST['intro']=="texto"){
-        //Ingreso a traves de campo
-        $puntos=$_POST['puntos'];
-        $valores = explode(";",$puntos);
-        $n=count($valores);
-        for ($i=0; $i < $n; $i++) { 
-            $value=explode(",",$valores[$i]);
-            $x[$i]=$value[0];
+    //Ingreso a traves de archivo txt
+    copy($_FILES['valores']['tmp_name'],$_FILES['valores']['name']);
+    $puntos=$_FILES['valores']['name'];
+    $leer = file($puntos);
+    $campo='';
+    foreach ($leer as $linea){
+        $campo = $campo.$linea.';';
+    }
+    $valores = explode(";",$campo);
+    $n =count($valores)-1; 
+    for ($i=0; $i < $n; $i++) {   
+        $value=explode(",",$valores[$i]);
+        $x[$i]=$value[0];
+        if($i<$n-1){
+            $y[$i]=substr($value[1],0,-2);
+        }else{
             $y[$i]=$value[1];
-            
-        }
-    }else{
-        //Ingreso a traves de archivo txt
-        copy($_FILES['valores']['tmp_name'],$_FILES['valores']['name']);
-        $puntos=$_FILES['valores']['name'];
-        $leer = file($puntos);
-        $campo='';
-        foreach ($leer as $linea){
-           $campo = $campo.$linea.';';
-        }
-       
-        $valores = explode(";",$campo);
-        $n =count($valores)-1; 
-        for ($i=0; $i < $n; $i++) { 
-           
-            $value=explode(",",$valores[$i]);
-            $x[$i]=$value[0];
-            if($i<$n-1){
-                $y[$i]=substr($value[1],0,-2);
-            }else{
-                $y[$i]=$value[1];
-            }
-            
-           
         }
     }
-    
-    $values[0]=$x;
-    $values[1]=$y;
+
 
     //Funcion Principal
     $funcion = '(1/(1+a*(x-x0)**2))+(c/(1+a*(x-x0-b)**2))';
@@ -212,7 +209,7 @@ if(isset($_POST['btnA'])){
         //Aplicación de la elimancion gaussiana para los nuevos valores del vectorZ
         $vectorZ=eliminacionGaussiana($a,$b);
 
- /*    
+  
         //Impresion de resultados
 
            echo "<div class='flexbox'>";
@@ -238,7 +235,7 @@ if(isset($_POST['btnA'])){
                     printMatrix($vectorF,null);
                 echo "</div>";
         echo "</div>";
-
+/* 
  
         echo "<div class='flexbox'>";
 
@@ -306,12 +303,9 @@ if(isset($_POST['btnA'])){
     echo "<div class='error'><br> NO se encontro los valores de ajuste <br></div>";
    }
 
-
-
     
     $tabla1=array();
     $tabla2=array();
-    $l=5;
     $tabla1[0]=array('n','canal','conteo','conteo normalizado');
     $tabla2[0]=array('n','canal','conteo normalizado','curva','diferencia');
     $funcionAux=$funcion;
@@ -353,7 +347,7 @@ if(isset($_POST['btnA'])){
                'height': 640,  
                'appletOnLoad': function(api) {                
                 ";
-
+                echo "api.evalCommand('Function($funcion,0,8000)');";
                 
     echo "       
         }}, true);

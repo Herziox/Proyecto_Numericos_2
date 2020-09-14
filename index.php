@@ -47,15 +47,27 @@
             <h3 class="centrar-texto texto-blancho">Ingreso de datos</h3>
             <form class="formulario" action="" method="post" enctype="multipart/form-data">
             
-            <div class="">
-                <label for="validationDefault02"><input type="radio" name="intro" value="texto" onchange="invisible()" checked> Ingresar puntos</label>
-                <input  type="text" class="form-control" id="validationDefault01" name="puntos" placeholder="2,-6;3,-1;4,6" value="<?php if (isset($_POST['puntos']))echo $_POST['puntos']; else echo "2,-6;3,-1;4,6"; ?>">
-            </div>
-            <label for="validationDefault02"><input type="radio" name="intro" value="archivo" onchange="visible()" > Cargar archivo</label>
+            <label for="validationDefault02"> Cargar Valores</label>
                 <br>
             <div class="input-group">          
                 <input type="file" class="custom-file-input" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" name="valores">
                 <label class="custom-file-label" for="inputGroupFile04"><?php if (isset($_POST['valores']))echo $_POST['valores']; else echo "Seleccionar Archivo"; ?></label>        
+            </div>
+            <label for="validationDefault02"> Estimativa incial</label>
+            <div class="flexbox">
+                
+                <div class="box">
+                    <label for="validationDefault02"> a </label>
+                    <input  type="text" class="form-control" id="validationDefault01" name="a" placeholder="1" value="<?php if (isset($_POST['a']))echo $_POST['a']; else echo "1e-6"; ?>">
+                </div>
+                <div class="box">
+                    <label for="validationDefault02"> b </label>
+                    <input  type="text" class="form-control" id="validationDefault01" name="b" placeholder="1" value="<?php if (isset($_POST['b']))echo $_POST['b']; else echo "850"; ?>">
+                </div>
+                <div class="box">
+                    <label for="validationDefault02"> c </label>
+                    <input  type="text" class="form-control" id="validationDefault01" name="c" placeholder="1" value="<?php if (isset($_POST['c']))echo $_POST['c']; else echo "0.7"; ?>">
+                </div>
             </div>
             <div class="flexbox">
             <input class="btn btn-primary"  class="centrar boton" type="submit" value="Calcular" id="btnA" name="btnA" />
@@ -71,6 +83,9 @@
 if(isset($_POST['btnA'])){
 
     //Incognitas
+    $vectorZ[0]=$_POST['a'];
+    $vectorZ[1]=$_POST['b'];
+    $vectorZ[2]=$_POST['c'];
     $incognitas = ['a','b','c'];
         // a ancho de la campana
         // b desplazamientod de la funcion
@@ -79,6 +94,7 @@ if(isset($_POST['btnA'])){
     $yMax=1087.7814;
     $tol=1e-2;
     $m=count($incognitas);
+    $matrizI = array(array(1,0,0),array(0,1,0),array(0,1,0));
 
     //VARIABLES
     $resultado=true;
@@ -99,18 +115,7 @@ if(isset($_POST['btnA'])){
     $cont=0;
 
     //Ingreso de puntos en el plano cartesiano
-    if($_POST['intro']=="texto"){
-        //Ingreso a traves de campo
-        $puntos=$_POST['puntos'];
-        $valores = explode(";",$puntos);
-        $n=count($valores);
-        for ($i=0; $i < $n; $i++) { 
-            $value=explode(",",$valores[$i]);
-            $x[$i]=$value[0];
-            $y[$i]=$value[1];
-            
-        }
-    }else{
+   
         //Ingreso a traves de archivo txt
         copy($_FILES['valores']['tmp_name'],$_FILES['valores']['name']);
         $puntos=$_FILES['valores']['name'];
@@ -131,10 +136,10 @@ if(isset($_POST['btnA'])){
             }else{
                 $y[$i]=$value[1];
             }
-            
+            //Hola
            
         }
-    }
+    
     
     $values[0]=$x;
     $values[1]=$y;
@@ -212,7 +217,7 @@ if(isset($_POST['btnA'])){
         //Aplicación de la elimancion gaussiana para los nuevos valores del vectorZ
         $vectorZ=eliminacionGaussiana($a,$b);
 
- /*    
+   /* 
         //Impresion de resultados
 
            echo "<div class='flexbox'>";
@@ -258,8 +263,8 @@ if(isset($_POST['btnA'])){
                 echo "</div>";
 
         echo "</div>";
-       */ 
-    
+       
+   */ 
 
         for ($i=0; $i < $m; $i++) { 
             $val = $vectorAux[$i]-$vectorZ[$i];
@@ -315,10 +320,12 @@ if(isset($_POST['btnA'])){
     $tabla1[0]=array('n','canal','conteo','conteo normalizado');
     $tabla2[0]=array('n','canal','conteo normalizado','curva','diferencia');
     $funcionAux=$funcion;
+   // $vectorZ=[8.57e-7,-4.62699,0.037064];
     for ($i=0; $i < $m; $i++) { 
         $funcion = str_replace($incognitas[$i],'('.$vectorZ[$i].')',$funcion);
     }
-    //echo "$funcion <br>";
+    echo "$funcion <br>";
+    $yNG=array();
     for ($i=0; $i < $n; $i++) { 
 
         //A. Llene la Tabla 1 a partir de los datos que obtenga en la Fig. 1
@@ -329,6 +336,7 @@ if(isset($_POST['btnA'])){
         $yCurva = str_replace('x','('.$x[$i].')',$yCurva);
         //echo "$yCurva <br>";
         $yCurva = eval("return $yCurva;");
+        $yNG[$i]=$yMax*$yCurva;
         $diferencia = eval("return abs($y[$i]-$yCurva);");
         $tabla2[$i+1]=array($i,$x[$i],$yNormal[$i],$yCurva,$diferencia);
     }
@@ -337,8 +345,10 @@ if(isset($_POST['btnA'])){
     echo "<h2>Tabla 2</h2>";
     printMatrix($tabla2,null);
     
-
-   
+    for ($i=0; $i < $n; $i++) { 
+        $y[$i]=(int)$y[$i];
+    }
+   $funcionGrap = $yMax.'('.$funcion.')';
 
    // Graficadora de Geogebra
    echo "
@@ -353,7 +363,14 @@ if(isset($_POST['btnA'])){
                'height': 640,  
                'appletOnLoad': function(api) {                
                 ";
-
+                for ($i=0; $i < $n; $i++) { 
+                    echo "api.evalCommand('($x[$i], $yNG[$i])');";
+                    //echo "api.evalCommand('($x[$i], $y[$i])');";
+                }
+                $l=$n-1;
+                echo "api.evalCommand('Function($funcion,$x[0],$x[$l])');";
+                echo "api.evalCommand('Function($funcionGrap,$x[0],$x[$l])');";
+              
                 
     echo "       
         }}, true);

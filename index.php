@@ -359,6 +359,7 @@ if(isset($_POST['btnA'])){
        <script>
            var ggbApp = new GGBApplet({
                'appName': 'graphing',
+               'autoHeight':true, 
                'showZoomButtons':true,
                'height': 640,  
                'appletOnLoad': function(api) {                

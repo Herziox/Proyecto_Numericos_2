@@ -39,7 +39,7 @@
         </nav>
 
     <div class="title">
-            <h1> Proyecto de Segundp Bimestre (Version alpha 2.0)</h1>
+            <h1> Proyecto de Segundp Bimestre (Version Beta 1.0)</h1>
      </div>
     <section id ="ingresarDatos"class="datos-details">
        
@@ -92,18 +92,21 @@ if(isset($_POST['btnA'])){
         // c altura de la funcion
     //CONSTANTES
     $yMax=1087.7814;
-    $tol=1e-2;
+    $tol=1e-7;
     $m=count($incognitas);
-    $matrizI = array(array(1,0,0),array(0,1,0),array(0,1,0));
+    $matrizI = array(array(1,0,0),array(0,1,0),array(0,0,1));
 
     //VARIABLES
     $resultado=true;
 
     // S(a,b,c)
-    $vectorF;
+    $vectorF=array();
+    $vectorFT=array();
+    $Sn=array();
+    $S=array();
 
     //Vector inicial de los valores [a,b,c]
-    $vectorZ=[1e-6,850,0.7];
+
 
     //Jacobina 
     $jacobiana;
@@ -153,9 +156,9 @@ if(isset($_POST['btnA'])){
     echo "Función: $funcion <br>";
 
     $yNormal=array();
+    $lambda=1;
 
-
-    while($resultado && $cont<30){
+    while($resultado){
         
       
         //Armar Vecor F,  Jacobiana y Jacobiana Traspuesta
@@ -194,10 +197,19 @@ if(isset($_POST['btnA'])){
 
             //Armar el Vector F
              $vectorF[$i][0]= eval("return $funcionF;");
+             $vectorFT[0][$i]=$vectorF[$i][0];
         }
         
         //Producto de Jacobiana traspuesta por la jacobiana
         $a=productoDeMatrices($jacobianaT,$jacobiana);
+
+        //Suma de Lambda
+        for ($i=0; $i < $m; $i++) { 
+            $matrizI[$i][$i]=$a[$i][$i];
+        }
+
+        $matLambda=prpductoMatrizEscalar($matrizI,$lambda);
+        $a=sumarMatrices($a,$matLambda,$m);
 
         // Multiplicacion de -1 por la matriz Jacobiana traspuesta
         $jacobianaT_N=prpductoMatrizEscalar($jacobianaT,-1);   
@@ -265,22 +277,42 @@ if(isset($_POST['btnA'])){
         echo "</div>";
        
    */ 
-
-        for ($i=0; $i < $m; $i++) { 
-            $val = $vectorAux[$i]-$vectorZ[$i];
-            $resultado=false;
-            if(abs($val)>$tol){
-                $cont++;
-                $resultado=true;
-                break;
+        $S=productoDeMatrices($vectorF,$vectorFT);
+       // echo "S: ";
+        //echo $S[0][0];
+        
+        if($cont>0){
+           // echo " <br> Cont: $cont <br>";
+            if ($S[0][0]<=$Sn[0][0]/2){
+                $lambda=$lambda/2;
+            }else{
+                $lambda=2*$lambda;
             }
         }
-
-        for ($i=0; $i < $m; $i++) { 
-            $vectorZ[$i]+=$vectorAux[$i];
-        }
+        $Sn=$S;
+       /* echo "<br> Lambda: $lambda <br>";
         
-       /*
+        echo "SN: ";
+        echo $Sn[0][0];
+       */ 
+        
+        if($cont>0){
+            $resultado=false;
+            for ($i=0; $i < $m; $i++) { 
+                $val = $vectorZAux[$i]-$vectorZ[$i];
+                if(abs($val)>$tol){
+                    $resultado=true;
+                    break;
+                }
+            }
+        }
+       
+        $cont++;
+        $vectorZAux = $vectorZ;
+       
+        
+        
+    /*   
         echo "<div class='flexbox'>";
         echo "<div class='box'>";
             echo "</br> <h2>Vector Z (iteración $cont)</h2></br>";
@@ -291,13 +323,18 @@ if(isset($_POST['btnA'])){
             echo "</br> <h2>+</h2></br>";
             showResult($vectorZ);
         echo "</div>";
-
+        */
+        for ($i=0; $i < $m; $i++) { 
+            $vectorZ[$i]+=$vectorAux[$i];
+        }
+        /*
         echo "<div class='box'>";
             echo "</br> <h2> = Vector Z (iteración $cont)</h2></br>";
             showResult($vectorZ);
         echo "</div>";
      echo "</div>";
-        */
+     */
+        
    }
 
     echo "<div class='flexbox'>";
@@ -316,7 +353,6 @@ if(isset($_POST['btnA'])){
     
     $tabla1=array();
     $tabla2=array();
-    $l=5;
     $tabla1[0]=array('n','canal','conteo','conteo normalizado');
     $tabla2[0]=array('n','canal','conteo normalizado','curva','diferencia');
     $funcionAux=$funcion;
@@ -324,7 +360,7 @@ if(isset($_POST['btnA'])){
     for ($i=0; $i < $m; $i++) { 
         $funcion = str_replace($incognitas[$i],'('.$vectorZ[$i].')',$funcion);
     }
-    echo "$funcion <br>";
+    echo "<h3> Función Final: $funcion </h3> <br>";
     $yNG=array();
     for ($i=0; $i < $n; $i++) { 
 
@@ -383,6 +419,16 @@ if(isset($_POST['btnA'])){
    ";
    
 
+}
+//Funcion para sumar matrices
+function sumarMatrices($a,$b,$n){
+    $matRes=array();
+    for ($i=0; $i < $n; $i++) { 
+        for ($j=0; $j < $n; $j++) { 
+            $matRes[$i][$j]=$a[$i][$j]+$b[$i][$j];
+        }
+    }
+    return $matRes;
 }
 
 

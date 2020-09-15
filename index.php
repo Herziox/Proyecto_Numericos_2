@@ -13,7 +13,7 @@
    <!-- <link rel="stylesheet" href="../css/main.css"> -->
    <link rel="stylesheet" href="./css/estilos.css">
    <script src="https://www.geogebra.org/apps/deployggb.js"></script>
-    <title>Proyecto de Segundp Bimestre</title>
+    <title>Ajuste de Curvas Levenberg Marquardt </title>
 <script src="./js/codigos.js"> </script>
 </head>
     
@@ -25,7 +25,7 @@
 
     <nav class="navbar navbar-dark bg-dark navbar-expand-lg sticky-top">
         
-        <a class="navbar-brand btn-outline-success" href="#"> <img src="https://i.imgur.com/c1VjDtt.png" class="img-fluid image-nav"  alt="Responsive image"> Proyecto de Segundp Bimestre </a>
+        <a class="navbar-brand btn-outline-success" href="#"> <img src="https://i.imgur.com/c1VjDtt.png" class="img-fluid image-nav"  alt="Responsive image"> Ajuste de Curvas Levenberg Marquardt  </a>
             
         <a class="navbar-brand btn-outline-success" href="#ingresarDatos">Ingresar Datos</a>
             <button class="navbar-toggler" type="button" >
@@ -39,7 +39,7 @@
         </nav>
 
     <div class="title">
-            <h1> Proyecto de Segundp Bimestre (Version Beta 1.0)</h1>
+            <h1> Ajuste de Curvas Levenberg Marquardt (Version Beta 1.0)</h1>
      </div>
     <section id ="ingresarDatos"class="datos-details">
        
@@ -68,6 +68,10 @@
                     <label for="validationDefault02"> c </label>
                     <input  type="text" class="form-control" id="validationDefault01" name="c" placeholder="1" value="<?php if (isset($_POST['c']))echo $_POST['c']; else echo "0.7"; ?>">
                 </div>
+                <div class="box">
+                    <label for="validationDefault02"> tolerancia </label>
+                    <input  type="text" class="form-control" id="validationDefault01" name="tol" placeholder="1" value="<?php if (isset($_POST['tol']))echo $_POST['tol']; else echo "1e-7"; ?>">
+                </div>
             </div>
             <div class="flexbox">
             <input class="btn btn-primary"  class="centrar boton" type="submit" value="Calcular" id="btnA" name="btnA" />
@@ -92,9 +96,10 @@ if(isset($_POST['btnA'])){
         // c altura de la funcion
     //CONSTANTES
     $yMax=1087.7814;
-    $tol=1e-7;
+    //$tol=1e-7;
     $m=count($incognitas);
     $matrizI = array(array(1,0,0),array(0,1,0),array(0,0,1));
+    $tol=$_POST['tol'];
 
     //VARIABLES
     $resultado=true;
@@ -149,11 +154,10 @@ if(isset($_POST['btnA'])){
 
     //Funcion Principal
     $funcion = '(1/(1+a*(x-x0)**2))+(c/(1+a*(x-x0-b)**2))';
-    echo "Función: $funcion <br>";
+    echo "<h3> Función Orinal: $funcion </h3><br>";
 
     //Reemplazo del x0
     $funcion = str_replace('x0','4000',$funcion);
-    echo "Función: $funcion <br>";
 
     $yNormal=array();
     $lambda=1;

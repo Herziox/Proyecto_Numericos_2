@@ -39,7 +39,7 @@
         </nav>
 
     <div class="title">
-            <h1> Ajuste de Curvas Levenberg Marquardt (Version Beta 1.0)</h1>
+            <h1> Ajuste de Curvas Levenberg Marquardt Beta 2.0</h1>
      </div>
     <section id ="ingresarDatos"class="datos-details">
        
@@ -90,6 +90,7 @@ if(isset($_POST['btnA'])){
     $vectorZ[0]=$_POST['a'];
     $vectorZ[1]=$_POST['b'];
     $vectorZ[2]=$_POST['c'];
+    
     
     //CONSTANTES
     $yMax=1087.7814;
@@ -154,7 +155,14 @@ if(isset($_POST['btnA'])){
 
     //Funcion Principal
     $funcion = '(1/(1+a*(x-x0)**2))+(c/(1+a*(x-x0-b)**2))';
-    echo "<h3> Función Orinal: $funcion </h3><br>";
+    echo "<h3> Función Original: $funcion </h3><br>";
+    //Impresión del vector Z Original
+    echo "<div class='flexbox'>";
+        echo "<div class='box'>";
+            echo "</br> <h2> Vector Z Original</h2></br>";
+            showResult($vectorZ);
+        echo "</div>";
+    echo "</div>";
 
     //Reemplazo del x0
     $funcion = str_replace('x0','4000',$funcion);
@@ -348,7 +356,7 @@ if(isset($_POST['btnA'])){
    //Impresión del vector Z obtenido
     echo "<div class='flexbox'>";
         echo "<div class='box'>";
-            echo "</br> <h2> Vector Z (iteración $cont)</h2></br>";
+            echo "</br> <h2> Vector Z Final (iteración $cont)</h2></br>";
             showResult($vectorZ);
         echo "</div>";
     echo "</div>";

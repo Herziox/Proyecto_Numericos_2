@@ -90,27 +90,34 @@ if(isset($_POST['btnA'])){
     $vectorZ[0]=$_POST['a'];
     $vectorZ[1]=$_POST['b'];
     $vectorZ[2]=$_POST['c'];
+    
+    //CONSTANTES
+    $yMax=1087.7814;
+
+    //matriz de identidad
+    $matrizI = array(array(1,0,0),array(0,1,0),array(0,0,1));
+        
+    //Vector inicial de los valores [a,b,c]
     $incognitas = ['a','b','c'];
         // a ancho de la campana
         // b desplazamientod de la funcion
         // c altura de la funcion
-    //CONSTANTES
-    $yMax=1087.7814;
-    //$tol=1e-7;
+    
+    //numero de incognitas
     $m=count($incognitas);
-    $matrizI = array(array(1,0,0),array(0,1,0),array(0,0,1));
-    $tol=$_POST['tol'];
-
+    
     //VARIABLES
-    $resultado=true;
-
-    // S(a,b,c)
-    $vectorF=array();
-    $vectorFT=array();
-    $Sn=array();
-    $S=array();
-
-    //Vector inicial de los valores [a,b,c]
+    $tol=$_POST['tol']; // Tolerancia
+    $resultado=true;  //Booleano que controla todo el bucle 
+    $vectorF=array(); // Vector F
+    $vectorFT=array(); // Vector F traspuesto
+    $S=array(); // El valor S que permitira evaluar como aumenta o disminuye el valor de lambda
+    $Sn=array(); // El valor S auxliar
+    $yNormal=array(); // Vector con los valores de y normalizados
+    $lambda=1;  //Valor de lambda que permitira aumentar la velocidad a la cual convergen los valores
+    $tabla1=array();
+    $tabla2=array();
+    $yNG=array();
 
 
     //Jacobina 
@@ -124,33 +131,26 @@ if(isset($_POST['btnA'])){
 
     //Ingreso de puntos en el plano cartesiano
    
-        //Ingreso a traves de archivo txt
-        copy($_FILES['valores']['tmp_name'],$_FILES['valores']['name']);
-        $puntos=$_FILES['valores']['name'];
-        $leer = file($puntos);
-        $campo='';
-        foreach ($leer as $linea){
-           $campo = $campo.$linea.';';
-        }
-       
-        $valores = explode(";",$campo);
-        $n =count($valores)-1; 
-        for ($i=0; $i < $n; $i++) { 
-           
-            $value=explode(",",$valores[$i]);
-            $x[$i]=$value[0];
-            if($i<$n-1){
-                $y[$i]=substr($value[1],0,-2);
-            }else{
-                $y[$i]=$value[1];
-            }
-            //Hola
-           
-        }
-    
-    
-    $values[0]=$x;
-    $values[1]=$y;
+    //Ingreso a traves de archivo txt
+    copy($_FILES['valores']['tmp_name'],$_FILES['valores']['name']);
+    $puntos=$_FILES['valores']['name'];
+    $leer = file($puntos);
+    $campo='';
+    foreach ($leer as $linea){
+        $campo = $campo.$linea.';';
+    }  
+    $valores = explode(";",$campo);
+    $n =count($valores)-1; 
+    for ($i=0; $i < $n; $i++) { 
+        
+        $value=explode(",",$valores[$i]);
+        $x[$i]=$value[0];
+        if($i<$n-1){
+            $y[$i]=substr($value[1],0,-2);
+        }else{
+            $y[$i]=$value[1];
+        }     
+    }
 
     //Funcion Principal
     $funcion = '(1/(1+a*(x-x0)**2))+(c/(1+a*(x-x0-b)**2))';
@@ -159,8 +159,7 @@ if(isset($_POST['btnA'])){
     //Reemplazo del x0
     $funcion = str_replace('x0','4000',$funcion);
 
-    $yNormal=array();
-    $lambda=1;
+    
 
     while($resultado){
         
@@ -172,7 +171,7 @@ if(isset($_POST['btnA'])){
 
             //Funcion para obtener la Jacobiana
             $funcionAux=$funcion;
-            $funcionAux = str_replace('x',$x[$i],$funcionAux);
+            $funcionAux = str_replace('x','('.$x[$i].')',$funcionAux);
             $funcionAux = $funcionAux.'-('.$yNormal[$i].')';
 
             //Funcion para obtener el VectorF
@@ -212,11 +211,14 @@ if(isset($_POST['btnA'])){
             $matrizI[$i][$i]=$a[$i][$i];
         }
 
-        $matLambda=prpductoMatrizEscalar($matrizI,$lambda);
+        //Multiplicación del valor lambda con la matriz identidad  
+        $matLambda=productoMatrizEscalar($matrizI,$lambda);
+
+        //Suma de la matriz lambda y la matriz resultante del producto de la jacobiana y jacobiana traspuesta
         $a=sumarMatrices($a,$matLambda,$m);
 
         // Multiplicacion de -1 por la matriz Jacobiana traspuesta
-        $jacobianaT_N=prpductoMatrizEscalar($jacobianaT,-1);   
+        $jacobianaT_N=productoMatrizEscalar($jacobianaT,-1);   
 
         //Multiplicacion de la Jacobiana Traspuesta Negativa por el vectorF
         $vectorAux=productoDeMatrices($jacobianaT_N,$vectorF);
@@ -234,7 +236,7 @@ if(isset($_POST['btnA'])){
         $vectorZ=eliminacionGaussiana($a,$b);
 
    /* 
-        //Impresion de resultados
+        //  IMPRESIÓN DE RESULTADOS
 
            echo "<div class='flexbox'>";
                 echo "<div class='box'>";
@@ -281,25 +283,22 @@ if(isset($_POST['btnA'])){
         echo "</div>";
        
    */ 
+        //Calculo del valor S 
         $S=productoDeMatrices($vectorF,$vectorFT);
-       // echo "S: ";
-        //echo $S[0][0];
         
         if($cont>0){
-           // echo " <br> Cont: $cont <br>";
+            //Condición para establecer como varia el valor de lambda
             if ($S[0][0]<=$Sn[0][0]/2){
                 $lambda=$lambda/2;
             }else{
                 $lambda=2*$lambda;
             }
         }
+
+        //Guardamos el valor de S en un auxiliar
         $Sn=$S;
-       /* echo "<br> Lambda: $lambda <br>";
         
-        echo "SN: ";
-        echo $Sn[0][0];
-       */ 
-        
+        //Verificamos si se cumple la condición de parada en base a la tolerancia
         if($cont>0){
             $resultado=false;
             for ($i=0; $i < $m; $i++) { 
@@ -311,7 +310,10 @@ if(isset($_POST['btnA'])){
             }
         }
        
+        //Incrementamos un valor al contador
         $cont++;
+
+        //Guardamos el vectorZ anterior
         $vectorZAux = $vectorZ;
        
         
@@ -328,6 +330,8 @@ if(isset($_POST['btnA'])){
             showResult($vectorZ);
         echo "</div>";
         */
+
+        // Realizamos la Suma de los valores de Z con los de obtenidos en esta iteración
         for ($i=0; $i < $m; $i++) { 
             $vectorZ[$i]+=$vectorAux[$i];
         }
@@ -341,6 +345,7 @@ if(isset($_POST['btnA'])){
         
    }
 
+   //Impresión del vector Z obtenido
     echo "<div class='flexbox'>";
         echo "<div class='box'>";
             echo "</br> <h2> Vector Z (iteración $cont)</h2></br>";
@@ -348,24 +353,18 @@ if(isset($_POST['btnA'])){
         echo "</div>";
     echo "</div>";
 
-   if($cont>=30){
-    echo "<div class='error'><br> NO se encontro los valores de ajuste <br></div>";
-   }
 
 
-
-    
-    $tabla1=array();
-    $tabla2=array();
     $tabla1[0]=array('n','canal','conteo','conteo normalizado');
     $tabla2[0]=array('n','canal','conteo normalizado','curva','diferencia');
     $funcionAux=$funcion;
-   // $vectorZ=[8.57e-7,-4.62699,0.037064];
+
     for ($i=0; $i < $m; $i++) { 
         $funcion = str_replace($incognitas[$i],'('.$vectorZ[$i].')',$funcion);
     }
+
     echo "<h3> Función Final: $funcion </h3> <br>";
-    $yNG=array();
+ 
     for ($i=0; $i < $n; $i++) { 
 
         //A. Llene la Tabla 1 a partir de los datos que obtenga en la Fig. 1
@@ -374,20 +373,26 @@ if(isset($_POST['btnA'])){
          //B. Llene la Tabla 2 a partir del calculo compuacional
         $yCurva = $funcion;
         $yCurva = str_replace('x','('.$x[$i].')',$yCurva);
-        //echo "$yCurva <br>";
         $yCurva = eval("return $yCurva;");
         $yNG[$i]=$yMax*$yCurva;
         $diferencia = eval("return abs($y[$i]-$yCurva);");
         $tabla2[$i+1]=array($i,$x[$i],$yNormal[$i],$yCurva,$diferencia);
     }
+
+    //Impresion de la Tabla 1
     echo "<h2>Tabla 1</h2>";
     printMatrix($tabla1,null);
+
+    //Impresion de la Tabla 2
     echo "<h2>Tabla 2</h2>";
     printMatrix($tabla2,null);
-    
+
+    //Conversión de datos 
     for ($i=0; $i < $n; $i++) { 
         $y[$i]=(int)$y[$i];
     }
+
+    //Multiplicación del yMax con la función para poder visualizar mejor la grafica de la fución
    $funcionGrap = $yMax.'('.$funcion.')';
 
    // Graficadora de Geogebra
@@ -411,8 +416,7 @@ if(isset($_POST['btnA'])){
                 $l=$n-1;
                 echo "api.evalCommand('Function($funcion,$x[0],$x[$l])');";
                 echo "api.evalCommand('Function($funcionGrap,$x[0],$x[$l])');";
-              
-                
+                           
     echo "       
         }}, true);
                window.addEventListener('load', function() {
@@ -424,6 +428,11 @@ if(isset($_POST['btnA'])){
    
 
 }
+
+
+//  FUNCIONES UTILIZADAS 
+
+
 //Funcion para sumar matrices
 function sumarMatrices($a,$b,$n){
     $matRes=array();
@@ -474,7 +483,7 @@ function productoDeMatrices($matA,$matB){
 
 
 // Funcion matriz x escalar
-function prpductoMatrizEscalar($matriz,$escalar) {
+function productoMatrizEscalar($matriz,$escalar) {
     $matxesc = array();
     
         foreach ($matriz as $row_key => $row) {
@@ -484,6 +493,8 @@ function prpductoMatrizEscalar($matriz,$escalar) {
         }
     return $matxesc;    
 } 
+
+//Funcion de la derivada
 function primeraDerivada($x,$val,$funcion){
     $dx = 0.1; 
     $tolerancia = 1e-7;
@@ -497,6 +508,7 @@ function primeraDerivada($x,$val,$funcion){
     return $pendiente_L;
 }
 
+// Pendiente usada en la derivada
 function pendienteUno($x,$dx,$val,$funcion){
     return (ejecutar($x+$dx,$val,$funcion)-ejecutar($x-$dx,$val,$funcion))/(2*$dx);
 }

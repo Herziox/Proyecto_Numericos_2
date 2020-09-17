@@ -552,10 +552,11 @@ function showResult($vector){
 		   </a> 
 		   
 	   <p>
-	   Desarrollado por       
+	   Desarrollado por 
+       </br> Bryan Fernández      
 	   </br>Sergio  Jiménez 
-       </br> Bryan Fernández
 	   </br> Adrián Laje
+       </br>
 		 2020 Métodos Numéricos
 	   </p>
 	   </div>

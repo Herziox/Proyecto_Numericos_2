@@ -554,13 +554,14 @@ function showResult($vector){
 	   <p>
 	   Desarrollado por       
 	   </br>Sergio  Jiménez 
-	   </br>
+       </br> Bryan Fernández
+	   </br> Adrián Laje
 		 2020 Métodos Numéricos
 	   </p>
 	   </div>
 
 	   <div class="footer-details">
-	   <a href="https://github.com/Herziox/Cuadratura_Gaussiana">
+	   <a href="https://github.com/Herziox/Proyecto_Numericos_2">
 	   <img src="https://i.imgur.com/3VAL0Cj.png" class="img-fluid "  alt="Responsive image">
 	   </a>
 	   </div>

@@ -39,7 +39,7 @@
         </nav>
 
     <div class="title">
-            <h1> Ajuste de Curvas Levenberg Marquardt Beta 2.0</h1>
+            <h1> Ajuste de Curvas Levenberg Marquardt </h1>
      </div>
     <section id ="ingresarDatos"class="datos-details">
        
@@ -243,54 +243,7 @@ if(isset($_POST['btnA'])){
         //Aplicación de la elimancion gaussiana para los nuevos valores del vectorZ
         $vectorZ=eliminacionGaussiana($a,$b);
 
-   /* 
-        //  IMPRESIÓN DE RESULTADOS
-
-           echo "<div class='flexbox'>";
-                echo "<div class='box'>";
-                    echo "</br> <h2>Jacobiana Transpuesta</h2></br>";
-                    printMatrix($jacobianaT,null);
-                echo "</div>";
-        
-                echo "<div class='box'>";
-                    echo "</br><h2> Jacobiana</h2> </br>";
-                    printMatrix($jacobiana,null);
-                echo "</div>";
-              
-                echo "<div class='box'>";
-                    echo "</br> <h1>=</h1> </br>"; 
-                echo "</div>";
-                echo "<div class='box'>";
-                    echo "</br><h2> Jacobiana Transpuesta</h2></br>";
-                    printMatrix($jacobianaT_N,null);
-                echo "</div>";
-                echo "<div class='box'>";
-                    echo "</br> <h2>Vector F</h2></br>";
-                    printMatrix($vectorF,null);
-                echo "</div>";
-        echo "</div>";
-
- 
-        echo "<div class='flexbox'>";
-
-                echo "<div class='box'>";
-                    echo "</br><h2> Matriz A y vector Delta Z</h2></br>";
-                    printMatrix($a,$incognitas);
-                echo "</div>";
-
-              
-                echo "<div class='box'>";
-                    echo "</br> <h1>=</h1> </br>"; 
-                echo "</div>";
-
-                echo "<div class='box'>";
-                    echo "</br><h2> Jacobiana Transpuesta</h2></br>";
-                    printMatrix($jtxf,null);
-                echo "</div>";
-
-        echo "</div>";
-       
-   */ 
+  
         //Calculo del valor S 
         $S=productoDeMatrices($vectorF,$vectorFT);
         
@@ -323,33 +276,11 @@ if(isset($_POST['btnA'])){
 
         //Guardamos el vectorZ anterior
         $vectorZAux = $vectorZ;
-       
-        
-        
-    /*   
-        echo "<div class='flexbox'>";
-        echo "<div class='box'>";
-            echo "</br> <h2>Vector Z (iteración $cont)</h2></br>";
-            showResult($vectorAux);
-        echo "</div>";
-
-        echo "<div class='box'>";
-            echo "</br> <h2>+</h2></br>";
-            showResult($vectorZ);
-        echo "</div>";
-        */
 
         // Realizamos la Suma de los valores de Z con los de obtenidos en esta iteración
         for ($i=0; $i < $m; $i++) { 
             $vectorZ[$i]+=$vectorAux[$i];
         }
-        /*
-        echo "<div class='box'>";
-            echo "</br> <h2> = Vector Z (iteración $cont)</h2></br>";
-            showResult($vectorZ);
-        echo "</div>";
-     echo "</div>";
-     */
         
    }
 
